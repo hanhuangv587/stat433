@@ -1,0 +1,28 @@
+---
+title: "STAT433 Assignment 1"
+date: "`r Sys.Date()`"
+author: "Yuhan Wang"
+output: github_document
+---
+
+# Load Bridge Data for Wisconsin 2019
+
+## load require package
+
+```{r}
+library(data.table)
+library(readr)
+```
+
+## read data from the URL
+
+```{r}
+WIbridge2019_data <- fread("https://www.fhwa.dot.gov/bridge/nbi/2019/delimited/WI19.txt")
+```
+
+## check the structure of data and save it as csv file
+
+```{r}
+str(WIbridge2019_data)
+write_csv(WIbridge2019_data,'WIbridge2019_data.csv')
+```
