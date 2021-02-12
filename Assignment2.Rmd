@@ -1,0 +1,77 @@
+---
+title: "STAT433 Assignment 2"
+date: "`r Sys.Date()`"
+author: "Yuhan Wang"
+output: github_document
+---
+
+## load require package
+
+```{r}
+library(dplyr)
+
+# install.packages("nycflights13")
+library(nycflights13)
+library(ggplot2)
+library(naniar)
+library(lubridate) 
+```
+
+# 1) How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+
+```{r}
+#count the total number of missing dep_time
+sum(is.na(flights$dep_time))
+```
+
+```{r}
+#view the pattern of missing value
+vis_miss(flights %>% select(contains("arr_") , contains("dep_")),warn_large_data=FALSE)
+```
+
+**We notice that all rows that missing dep_time also missing dep_delay, arr_time and arr_delay, then we infer that they are cancelled flights.**
+
+# 2) Currently dep_time and sched_dep_time are convenient to look at, but hard to compute with because they are not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
+
+```{r}
+#Convert select columns to minutes since midnight
+flights_new <- flights %>% mutate(dep_time_MM = dep_time %/% 100 * 60 + dep_time %% 100,
+                                  sched_dep_time_MM = sched_dep_time %/% 100 * 60 + sched_dep_time %% 100)
+#Show the result
+flights_new %>% select(contains("dep_time"))
+```
+
+# 3) Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay? Use multiple dyplr operations, all on one line, concluding with \`ggplot(aes(x= ,y=)) + geom_point()'
+
+```{r}
+# look at the number of cancelled flights across weekday
+flights_new <-  flights_new %>% 
+  mutate(departure = make_datetime(year, month, day, hour, minute)) 
+
+flights_new %>% mutate(dayWeek = wday(departure)) %>% group_by(dayWeek) %>% 
+  summarise(num_cancel = sum(is.na(dep_time))) %>% 
+  ggplot(aes(x=dayWeek,y=num_cancel)) +
+  geom_point() + geom_smooth(se = FALSE)
+```
+
+**We can see the number of canceled flights is higher for weekdays compared with weekends.**
+
+```{r}
+#View(flights %>% filter(is.na(dep_time)))
+
+flights %>% group_by(day) %>% 
+  summarise(per_cancel = sum(is.na(dep_time))/n(),
+            ave_arr_delay = mean(arr_delay,na.rm = T)) %>% 
+  ggplot(aes(x=per_cancel,y=ave_arr_delay)) +
+  geom_point() + geom_smooth(se = FALSE)
+```
+
+```{r}
+flights %>% group_by(day) %>% 
+  summarise(per_cancel = sum(is.na(dep_time))/n(),
+            ave_dep_delay = mean(dep_delay,na.rm = T)) %>% 
+  ggplot(aes(x=per_cancel,y=ave_dep_delay)) +
+  geom_point() + geom_smooth(se = FALSE)
+```
+
+**We can see the proportion of canceled flights is positively related to the average delay.**
