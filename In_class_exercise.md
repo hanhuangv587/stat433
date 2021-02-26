@@ -97,7 +97,7 @@ flights %>%
   mutate(date = as.Date(time_hour)) %>% 
   group_by(dest,date) %>% 
   summarise(deps = n()) %>% 
-  pivot_wider(names_from = dest, values_from = deps)
+  pivot_wider(names_from = dest, values_from = deps, values_fill = 0)
 ```
 
     ## `summarise()` has grouped output by 'dest'. You can override using the `.groups` argument.
@@ -105,16 +105,16 @@ flights %>%
     ## # A tibble: 366 x 106
     ##    date         ABQ   ACK   ALB   ANC   ATL   AUS   AVL   BDL   BGR   BHM   BNA
     ##    <date>     <int> <int> <int> <int> <int> <int> <int> <int> <int> <int> <int>
-    ##  1 2013-04-22     1    NA    NA    NA    54     7    NA     2     1     1    18
-    ##  2 2013-04-24     1    NA    NA    NA    53     6    NA     2     1     1    18
-    ##  3 2013-04-25     1    NA    NA    NA    53     7    NA     2     1     1    18
-    ##  4 2013-04-26     1    NA    NA    NA    53     7    NA     2     1     1    18
-    ##  5 2013-04-27     1    NA    NA    NA    40     6    NA     2     2    NA    15
-    ##  6 2013-04-28     1    NA    NA    NA    46     5     1     2     2     1    15
-    ##  7 2013-04-29     1    NA    NA    NA    54     7    NA     2     1     1    18
-    ##  8 2013-04-30     1    NA    NA    NA    53     7    NA     2     1     1    18
-    ##  9 2013-05-01     1    NA     1    NA    51     8     1     2     1     1    19
-    ## 10 2013-05-02     1    NA     2    NA    50     6     1     2     1     1    19
+    ##  1 2013-04-22     1     0     0     0    54     7     0     2     1     1    18
+    ##  2 2013-04-24     1     0     0     0    53     6     0     2     1     1    18
+    ##  3 2013-04-25     1     0     0     0    53     7     0     2     1     1    18
+    ##  4 2013-04-26     1     0     0     0    53     7     0     2     1     1    18
+    ##  5 2013-04-27     1     0     0     0    40     6     0     2     2     0    15
+    ##  6 2013-04-28     1     0     0     0    46     5     1     2     2     1    15
+    ##  7 2013-04-29     1     0     0     0    54     7     0     2     1     1    18
+    ##  8 2013-04-30     1     0     0     0    53     7     0     2     1     1    18
+    ##  9 2013-05-01     1     0     1     0    51     8     1     2     1     1    19
+    ## 10 2013-05-02     1     0     2     0    50     6     1     2     1     1    19
     ## # ... with 356 more rows, and 94 more variables: BOS <int>, BQN <int>,
     ## #   BTV <int>, BUF <int>, BUR <int>, BWI <int>, BZN <int>, CAE <int>,
     ## #   CAK <int>, CHO <int>, CHS <int>, CLE <int>, CLT <int>, CMH <int>,

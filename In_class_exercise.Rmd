@@ -45,7 +45,7 @@ flights %>%
   mutate(date = as.Date(time_hour)) %>% 
   group_by(dest,date) %>% 
   summarise(deps = n()) %>% 
-  pivot_wider(names_from = dest, values_from = deps)
+  pivot_wider(names_from = dest, values_from = deps, values_fill = 0)
 ```
 
 
