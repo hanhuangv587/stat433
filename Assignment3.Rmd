@@ -1,0 +1,124 @@
+---
+title: "Assignement 3"
+author: "Yuhan Wang"
+date: "2021/2/27"
+output: github_document
+---
+
+```{r}
+#load require package
+library(nycflights13)
+library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(lubridate)
+```
+
+Introduction: after summarized the dataset, I have following results:
+1. Weekends have less canceled flights and delay departure time compared with weekdays, especially for EWR and LGA airport.
+2. Among big airlines(which has more than 10000 recording in the dataset), Delta Airline has the lowest cancel rate and relatively shorter delay time. 
+3. Morning have less canceled flights ratio and delay departure time compared with afternoon and evening.
+
+
+Following three section shows each finding
+
+# 1. choose weekend especially your origin is EWR or LGA
+
+```{r}
+# creat week variable
+flights_new <-  flights %>% 
+  mutate(departure = make_datetime(year, month, day, hour, minute),
+         dayWeek = wday(departure),
+         dayWeek = ifelse(dayWeek==1,'Sun',ifelse(dayWeek==2,'Mon',ifelse(dayWeek==3,'Tue',
+                   ifelse(dayWeek==4,'Wed',ifelse(dayWeek==5,'Thu',ifelse(dayWeek==6,'Fri',
+                   ifelse(dayWeek==7,'Sat','Missing')))))))) 
+
+flights_new$dayWeek <- factor(flights_new$dayWeek, levels = c('Mon','Tue','Wed','Thu','Fri','Sat','Sun'))
+flights_new$origin <- factor(flights_new$origin, levels = c('LGA','EWR','JFK'))
+
+# look at the number of canceled flights across weekday
+flights_new %>% group_by(dayWeek) %>%
+  summarise(num_cancel = sum(is.na(dep_delay)),
+            per_cancel = num_cancel/n(),
+            ave_delay = mean(dep_delay,na.rm=T))
+```
+
+```{r}
+#plot the number of cancelled flights by weekday and origin airports
+flights_new %>% 
+  filter(is.na(dep_delay)) %>% 
+  ggplot(aes(x=dayWeek,fill = origin)) +
+  geom_bar(position=position_dodge())
+```
+
+# 2. choose Delta Airline if possible
+
+```{r}
+table(flights$carrier)
+```
+
+
+```{r}
+# take airline that has more than 10000 flights records
+big_airline_list <- c('9E','AA','B6','DL','EV','MQ','UA','US','WN')
+
+flights2 <- flights %>%
+  left_join(airlines, by = "carrier")
+
+# look at the number of canceled flights across airlines
+flights2 %>% filter(carrier %in% big_airline_list) %>% group_by(name) %>%
+  summarise(num_cancel = sum(is.na(dep_delay)),
+            per_cancel = num_cancel/n(),
+            ave_delay = IQR(dep_delay,na.rm=T)) %>% 
+  arrange(per_cancel)
+```
+
+```{r,warning=FALSE}
+# make a density plot dep_time across big airlines
+
+flights_big <- flights2 %>% 
+  filter(carrier %in% big_airline_list) 
+
+flights_big %>%
+ filter(dep_delay >= -43L & dep_delay <= 119L | is.na(dep_delay)) %>%
+ ggplot() +
+ aes(x = dep_delay, fill = name) +
+ geom_density(adjust = 1L) +
+ scale_fill_hue() +
+ theme_minimal() +
+ facet_wrap(vars(name))
+```
+
+
+
+
+
+
+# 3. choose morning to take your flights
+
+```{r}
+# creat time period variable
+flights3 <- flights %>% 
+  mutate(time_period = ifelse(hour<=12,'morning',
+                       ifelse(hour>12 & hour<19,'afternoon',
+                       ifelse(hour>=19,'evening','missing'))))
+
+flights3$time_period <- factor(flights3$time_period, levels = c('morning','afternoon','evening'))
+
+# look at the number of canceled flights across time periods
+flights3 %>% group_by(time_period) %>%
+  summarise(num_cancel = sum(is.na(dep_delay)),
+            per_cancel = num_cancel/n(),
+            ave_delay = mean(dep_delay,na.rm=T)) %>% 
+  arrange(per_cancel)
+```
+
+
+```{r,warning=FALSE}
+# show the violin polt of delay time across time period
+flights3 %>% 
+  filter(!is.na(dep_delay)) %>% 
+  ggplot(aes(x=time_period,y = dep_delay, fill = time_period)) +
+  geom_violin() + ylim(-30,100)
+```
+
